@@ -7,7 +7,7 @@ module.exports = async (req, res, next) => {
   // x-auth-token => cle => mettez dans postman ,, value => token
   try {
     const token = req.header('x-auth-token')
-    console.log(token, req.header)
+    //console.log(token, req.header)
     // ---check whether token exists---
     if (!token) {
       return res
@@ -16,7 +16,7 @@ module.exports = async (req, res, next) => {
     }
     const decryptedToken = await jwt.verify(token, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })
 
-    console.log("decryptedToken", decryptedToken);
+    //console.log("decryptedToken", decryptedToken);
     req.user = decryptedToken.user
     next()
   } catch (er) {
