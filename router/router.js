@@ -10,7 +10,7 @@ const {
     imagePofile,
     saveCv,
     contrat,
-    projet,
+    ajoutProjet,
     getProjet,
     getPasswordLink,
     updatePassword,
@@ -19,7 +19,8 @@ const {
     getIdProjet,
     countUsersByRole,
     userStat,
-    updateProjet
+    updateProjet,
+    ajouterAxe
 } = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
 // const protect = require('../middlewares/auth.midd')
@@ -80,21 +81,25 @@ let uploadcontrat = multer({
 })
 
 router.get('/users/stats', userStat);
-router.get('/projets/:id', getIdProjet);
 //register
 router.post('/sign-up', registerValidation, registerUser)
-router.post('/projet', registerValidationProjet, projet)
+router.post('/projet', registerValidationProjet, ajoutProjet)
+router.post('/axeprojet', ajouterAxe)
 //login
 router.post('/sign-in', loginValidation, loginUser)
 //get
 router.get('/', auth, getUser)
 //get profile
 router.get('/profile', auth, getUserPofile)
+//get projet
 router.get('/projet', auth, getProjet)
+router.get('/projets/:id', getIdProjet);
 
 //modifier profile
 router.put('/profile', auth, editUserPofile)
+//modifier projet
 router.put('/projet/modifier/:id', updateProjet)
+//ajout file
 router.post('/profile/avatar', auth, upload.single('myFile'), imagePofile)
 router.post('/profile/cv', auth, uploadcv.single('cv'), saveCv)
 router.post('/projet/contrat', uploadcontrat.single('contrat'), contrat)

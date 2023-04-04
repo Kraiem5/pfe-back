@@ -32,7 +32,18 @@ const userSchema = new mongoose.Schema({
     ,
     contrat: {
         type: String,
-    }
+    },
+    axes: [{
+        _id: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            default: mongoose.Types.ObjectId
+        },
+        name: {
+            type: String,
+            required: true
+        }
+    }]
 
 }, { timestamps: true }
 )

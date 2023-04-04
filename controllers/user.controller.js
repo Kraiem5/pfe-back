@@ -8,6 +8,8 @@ require("dotenv").config();
 const { sendEmail } = require('../utils/sendPasswordRecoveryMail');
 const { config } = require('dotenv');
 const multer = require('multer');
+const { ObjectId } = require('mongodb');
+
 
 
 
@@ -240,7 +242,10 @@ const getIdProjet = async (req, res) => {
         if (!projet) {
             return res.status(404).json({ message: 'Projet non trouvé' });
         }
-        return res.json(projet);
+        return res.json({
+            status: true,
+            result: projet
+        })
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Erreur du serveur' });
@@ -260,14 +265,15 @@ const updateProjet = async (req, res) => {
                     user: req.body.user,
                     code_postal: req.body.code_postal,
                     contrat: req.body.contrat,
+
                 }
             },
             { new: true }
         );
         if (!projet) {
-            return res.status(404).json({ message: 'Projet non trouvé' });
+            return res.status(404).json({ status: false, message: 'Projet non trouvé' });
         }
-        return res.json(projet);
+        return res.json({ status: true, data: projet });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Erreur du serveur' });
@@ -280,8 +286,6 @@ const userStat = async (req, res) => {
         const technicienCount = await User.countDocuments({ role: 'TECHNICIEN' });
         const ingenieurCount = await User.countDocuments({ role: 'INGENIEUR' });
         const totalCount = adminCount + technicienCount + ingenieurCount;
-        console.log(adminCount, technicienCount, ingenieurCount, totalCount);
-
         res.json({
             status: true,
             result: {
@@ -289,10 +293,8 @@ const userStat = async (req, res) => {
                 technicienCount,
                 ingenieurCount,
                 totalCount,
-            },
-
+            }
         });
-        console.log('stat', res.result);
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -380,43 +382,49 @@ function logout(req, res) {
     res.redirect('/'); // Redirect the user to the homepage
 }
 
-const projet = async (req, res) => {
-
+const ajoutProjet = async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
         return res
             .status(400)
             .json({ errors: errors.array({ onlyFirstError: true }) })
     }
-
     const { nom_projet, client, description, begin, end, user, code_postal, contrat } = req.body
     try {
-
         // else define new Projet
         const newProjet = new Projet({
-            nom_projet, client, description, begin, end, user, code_postal, contrat
+            nom_projet, client, description, begin, end, user, code_postal, contrat,
         })
-        // save new user
+        // save new projet
         await newProjet.save()
-        // implement jwt
-
-        // const payload ={
-        //     user :{
-        //         id: user.id
-        //     }
-        // }
-        // jwt.sign(payload , "feefefefefe", {expiresIn : 7200000},(error , token)=>{
-        //     if (error) throw error
-        //     res.json({token})
-        // })
         res.status(200).send({ status: true })
-
     } catch (error) {
         console.error('erreur', error)
         res.status(400).send({ status: false })
-
     }
 }
+const ajouterAxe = async (req, res) => {
+    const { id_projet, name } = req.body;
+    const id_axe = new ObjectId(); // Génère un nouvel ObjectID pour l'axe
+    try {
+        // Récupérer le projet à mettre à jour
+        const projet = await Projet.findById(id_projet);
+        if (!projet) {
+            return res.status(404).send({ message: "Projet introuvable" });
+        }
+        // Ajouter le nouvel axe au document du projet
+        projet.axes.push({
+            _id: id_axe,
+            name: name,
+        });
+        // Sauvegarder les modifications
+        await projet.save();
+        res.status(200).send({ status: true, message: "Axe ajouté avec succès" });
+    } catch (error) {
+        console.error('erreur', error)
+        res.status(400).send({ status: false, message: "Erreur lors de l'ajout de l'axe" });
+    }
+};
 const countUsersByRole = async () => {
     try {
         const roles = ['ADMIN', 'TECHNICIEN', 'INGENIEUR'];
@@ -442,10 +450,11 @@ module.exports = {
     getUserPofile,
     editUserPofile,
     contrat,
-    projet,
+    ajoutProjet,
     getProjet,
     countUsersByRole,
     getIdProjet,
     userStat,
-    updateProjet
+    updateProjet,
+    ajouterAxe
 }
