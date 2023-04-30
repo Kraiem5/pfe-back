@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    short_description: {
+        type: String,
+        required: true
+    },
     description: {
         type: String,
         required: true
@@ -33,6 +37,9 @@ const userSchema = new mongoose.Schema({
     contrat: {
         type: String,
     },
+    mean_pourcentage_axes: {
+        type: String,
+    },
     axes: [{
         _id: {
             type: mongoose.Schema.Types.ObjectId,
@@ -42,8 +49,34 @@ const userSchema = new mongoose.Schema({
         name: {
             type: String,
             required: true
-        }
-    }]
+        },
+        mean_pourcentage_taches: {
+            type: String,
+        },
+        tache: [{
+            _id: {
+                type: mongoose.Types.ObjectId,
+                required: true,
+                default: mongoose.Types.ObjectId
+
+            },
+            name: {
+                type: String,
+                required: true
+            },
+            timeslot: {
+                type: String,
+
+
+            },
+            pourcentage: {
+                type: String,
+
+            },
+        }]
+    }],
+
+
 
 }, { timestamps: true }
 )
