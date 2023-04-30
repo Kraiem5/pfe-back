@@ -3,13 +3,13 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const User = require('../models/user.model');
 const Projet = require('../models/projet.model');
+const mongoose = require('mongoose');
 const { generateToken, verifToken } = require('../utils/generateToken');
 require("dotenv").config();
-const { sendEmail } = require('../utils/sendPasswordRecoveryMail');
+const mailer = require('../utils/sendPasswordRecoveryMail');
 const { config } = require('dotenv');
 const multer = require('multer');
 const { ObjectId } = require('mongodb');
-
 
 
 
@@ -107,9 +107,7 @@ const getUser = async (req, res) => {
     }
 }
 const sendForgetPasswordEmail = async (req, res) => {
-
     const email = req.body['email']
-    console.log("hjnkl;m:", email)
     try {
         const user = await User.findOne({ email: email })
         if (!user) {
@@ -122,10 +120,8 @@ const sendForgetPasswordEmail = async (req, res) => {
                 id: user.id
             }
         }
-        const token = await generateToken(payload)
-
-        // console.log("emaiiil", req.body);
-        await sendEmail(email, token)
+        const token = generateToken(payload)
+        mailer.send("resetCode", req.body['email'], "reset your password", token);
         res.status(200).json({ msg: 'Email sent!' })
     } catch (error) {
         console.error('fff', error.message)
@@ -135,24 +131,17 @@ const sendForgetPasswordEmail = async (req, res) => {
 const updatePassword = async (req, res) => {
     try {
         const verif = await verifToken(req.params.token)
-        console.log("vvvvvvvvvv", verif)
-
         if (!verif) {
             return res.status(400).json({
                 status: false, message: 'Invalid Token !'
             })
         }
         const user = await User.findOne({ _id: verif.user.id })
-
-
-
-
         if (!user) {
             return res.status(400).json({
                 status: false, message: 'Cannot find user with those credentials!'
             })
         }
-
         const salt = await bcrypt.genSalt(12)
         const newpassword = await bcrypt.hash(req.body.password, salt)
         const result = await User.findByIdAndUpdate(verif.user.id, { $set: { password: newpassword } })
@@ -161,12 +150,8 @@ const updatePassword = async (req, res) => {
         res.send({ status: true, message: 'passorw updated successfully' })
     } catch (error) {
         console.log(error)
-        // return res.status(400).json({
-        //     errors: [{ msg: 'Cannot find user with those credentials!' }]
-        //   })
     }
 }
-
 //***********get user */
 const editUserPofile = async (req, res) => {
     try {
@@ -237,14 +222,13 @@ const getProjet = async (req, res) => {
 }
 const getIdProjet = async (req, res) => {
     try {
-
         const projet = await Projet.findOne({ _id: req.params.id });
         if (!projet) {
             return res.status(404).json({ message: 'Projet non trouvé' });
         }
         return res.json({
             status: true,
-            result: projet
+            result: projet,
         })
     } catch (err) {
         console.error(err);
@@ -260,6 +244,7 @@ const updateProjet = async (req, res) => {
                     nom_projet: req.body.nom_projet,
                     client: req.body.client,
                     description: req.body.description,
+                    short_description: req.body.short_description,
                     begin: req.body.begin,
                     end: req.body.end,
                     user: req.body.user,
@@ -279,6 +264,73 @@ const updateProjet = async (req, res) => {
         return res.status(500).json({ message: 'Erreur du serveur' });
     }
 }
+const updateTache = async (req, res) => {
+    try {
+        const { name, timeslot, pourcentage } = req.body;
+        const projet = await Projet.findOne({ _id: req.params.idProjet });
+        console.log("projet", projet);
+        const tache = await Projet.findOneAndUpdate(
+
+            { "axes.tache._id": req.params.idTache },
+            {
+                $set: {
+                    "axes.$[i].tache.$[j].name": name,
+                    "axes.$[i].tache.$[j].timeslot": timeslot,
+                    "axes.$[i].tache.$[j].pourcentage": pourcentage
+                }
+            },
+            {
+                arrayFilters: [{ "i.tache._id": req.params.idTache }, { "j._id": req.params.idTache }],
+                new: true
+            }
+        );
+        if (!projet) {
+            return res.status(404).json({ msg: "Projet not found" });
+        }
+        if (!tache) {
+            return res.status(404).json({ msg: "Tache not found" });
+        }
+        res.json(projet);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+};
+
+
+// const updateTache = async (req, res) => {
+//     try {
+//         const { name, timeslot, pourcentage } = req.body;
+//         const projet = await Projet.findOneAndUpdate(
+//             {
+//                 "_id": req.params.idProjet,
+//                 "axes._id": req.params.idAxe,
+//                 "axes.tache._id": req.params.idTache
+//             },
+//             {
+//                 $set: {
+//                     "axes.$[i].tache.$[j].name": name,
+//                     "axes.$[i].tache.$[j].timeslot": timeslot,
+//                     "axes.$[i].tache.$[j].pourcentage": pourcentage
+//                 }
+//             },
+//             {
+//                 arrayFilters: [
+//                     { "i._id": req.params.idAxe },
+//                     { "j._id": req.params.idTache }
+//                 ],
+//                 new: true
+//             }
+//         );
+//         if (!projet) {
+//             return res.status(404).json({ msg: "Projet not found" });
+//         }
+//         res.json(projet);
+//     } catch (err) {
+//         console.error(err.message);
+//         res.status(500).send("Server Error");
+//     }
+// };
 
 const userStat = async (req, res) => {
     try {
@@ -303,8 +355,6 @@ const userStat = async (req, res) => {
         });
     }
 }
-
-
 const imagePofile = async (req, res) => {
     console.log("req.files", req.file)
     try {
@@ -376,12 +426,10 @@ const contrat = async (req, res) => {
         console.log("update contrat", error)
     }
 }
-
 function logout(req, res) {
     req.logout(); // This line logs out the current user
     res.redirect('/'); // Redirect the user to the homepage
 }
-
 const ajoutProjet = async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
@@ -389,11 +437,11 @@ const ajoutProjet = async (req, res) => {
             .status(400)
             .json({ errors: errors.array({ onlyFirstError: true }) })
     }
-    const { nom_projet, client, description, begin, end, user, code_postal, contrat } = req.body
+    const { nom_projet, client, description, short_description, begin, end, user, code_postal, contrat } = req.body
     try {
         // else define new Projet
         const newProjet = new Projet({
-            nom_projet, client, description, begin, end, user, code_postal, contrat,
+            nom_projet, client, description, short_description, begin, end, user, code_postal, contrat,
         })
         // save new projet
         await newProjet.save()
@@ -425,6 +473,87 @@ const ajouterAxe = async (req, res) => {
         res.status(400).send({ status: false, message: "Erreur lors de l'ajout de l'axe" });
     }
 };
+const ajouterTache = async (req, res) => {
+    const { id_axe, name, timeslot, pourcentage } = req.body;
+    const id_tache = new mongoose.Types.ObjectId();
+    try {
+        // Récupérer le projet à mettre à jour
+        const projet = await Projet.findOne({ "axes._id": id_axe });
+        if (!projet) {
+            return res.status(404).send({ message: "Projet introuvable" });
+        }
+        // Trouver l'axe dans le tableau axes du projet
+        const axe = projet.axes.find(axe => axe._id.toString() === id_axe);
+        if (!axe) {
+            return res.status(404).send({ message: "Axe introuvable dans le projet" });
+        }
+        // Vérifier que l'axe a un tableau tache avant d'ajouter la nouvelle tâche
+        if (!axe.tache) {
+            axe.tache = [];
+        }
+        // Ajouter la nouvelle tâche à l'axe en créant un nouvel objet de tâche
+        const nouvelleTache = {
+            _id: id_tache,
+            name: name, // Utiliser la valeur de name provenant de req.body pour définir le nom de la tâche
+            timeslot: timeslot, // Utiliser la valeur de timeslot provenant de req.body pour définir le temps alloué à la tâche
+            pourcentage: pourcentage, // Utiliser la valeur de pourcentage provenant de req.body pour définir le pourcentage de progression de la tâche
+        };
+        console.log('nouvelle', nouvelleTache);
+        axe.tache.push(nouvelleTache);
+        // Sauvegarder les modifications du projet
+
+        await projet.save();
+        console.log("proj", projet);
+        res.status(200).send({ status: true, message: "Tâche ajoutée avec succès à l'axe" });
+    } catch (error) {
+        console.error('Erreur', error)
+        res.status(400).send({ status: false, message: "Erreur lors de l'ajout de la tâche à l'axe" });
+    }
+};
+
+//     const { id_axe, name, timeslot, pourcentage } = req.body;
+//     const id_tache = new mongoose.Types.ObjectId();
+//     try {
+//         // Récupérer le projet à mettre à jour
+//         const projet = await Projet.findOne({ "axes._id": id_axe });
+//         if (!projet) {
+//             return res.status(404).send({ message: "Projet introuvable" });
+//         }
+//         // Trouver l'axe dans le tableau axes du projet
+//         const axe = projet.axes.find(axe => axe._id.toString() === id_axe);
+//         if (!axe) {
+//             return res.status(404).send({ message: "Axe introuvable dans le projet" });
+//         }
+//         // Vérifier que l'axe a un tableau tache avant d'ajouter la nouvelle tâche
+//         if (!axe.tache) {
+//             axe.tache = [];
+//         }
+//         // Ajouter la nouvelle tâche à l'axe en créant un nouvel objet de tâche
+//         const nouvelleTache = {
+//             _id: id_tache,
+//             name: name, // Utiliser la valeur de name provenant de req.body pour définir le nom de la tâche
+//             timeslot: timeslot, // Utiliser la valeur de name provenant de req.body pour définir le nom de la tâche
+//             pourcentage: pourcentage, // Utiliser la valeur de name provenant de req.body pour définir le nom de la tâche
+//         };
+//         axe.tache.push(nouvelleTache);
+//         // Sauvegarder les modifications du projet
+//         await projet.save();
+//         res.status(200).send({ status: true, message: "Tâche ajoutée avec succès à l'axe" });
+//     } catch (error) {
+//         console.error('Erreur', error)
+//         res.status(400).send({ status: false, message: "Erreur lors de l'ajout de la tâche à l'axe" });
+//     }
+// };
+const getAxes = async (req, res) => {
+    try {
+        const axes = await Projet.distinct('axes'); // Utiliser distinct pour récupérer uniquement les _id des axes
+        res.status(200).send(axes);
+    } catch (error) {
+        console.error('Erreur', error);
+        res.status(500).send({ message: "Erreur lors de la récupération des axes" });
+    }
+}
+
 const countUsersByRole = async () => {
     try {
         const roles = ['ADMIN', 'TECHNICIEN', 'INGENIEUR'];
@@ -437,6 +566,25 @@ const countUsersByRole = async () => {
     } catch (error) {
         console.error('Erreur lors du comptage des utilisateurs :', error);
     }
+};
+const searchProjet = async (searchTerm) => {
+
+    const regex = new RegExp('^' + searchTerm, 'i');
+    const result = await Projet.findOne({
+        $or: [
+            { nom_projet: regex },
+            { client: regex },
+            { description: regex },
+            { short_description: regex },
+            { begin: regex },
+            { end: regex },
+            { user: regex },
+            { code_postal: regex },
+            { contrat: regex },
+            { 'axes.name': regex },
+        ],
+    });
+    return result;
 };
 
 module.exports = {
@@ -456,5 +604,9 @@ module.exports = {
     getIdProjet,
     userStat,
     updateProjet,
-    ajouterAxe
+    ajouterAxe,
+    searchProjet,
+    ajouterTache,
+    getAxes,
+    updateTache
 }

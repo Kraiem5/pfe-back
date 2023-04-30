@@ -1,41 +1,27 @@
-var nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
+const send = (x = "", sendto, subjects, htmls) => {
+  let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: "belkhiriaahmed617@gmail.com",
+      pass: Mailer_Password = "ctvsfehqayqfelur"
+    }
+  });
+  let mailOptions = {
+    from: "kraiemabid300@gmail.com",
+    to: sendto,
+    subject: subjects,
+    html: "<b> salut</b>" +
+      `<br> votre lien de recuperation <a href="http://localhost:4200/reset-password/${htmls}"> http://localhost:4200/reset-password/${htmls}</a>`
+  };
 
-const smtpTransport = require('nodemailer-smtp-transport');
-
-
-
-
-module.exports.sendEmail = async (email, token) => {
-  try {
-
-
-    const transporter = nodemailer.createTransport(smtpTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: false,
-      auth: {
-        user: 'benfoulen240@gmail.com',
-        pass: 'flenazerty123'
-      }
-    }));
-
-    var mailOptions = {
-      from: 'benfoulen240@gmail.com',
-      to: 'benfoulen240@gmail.com',
-      subject: 'message de test ',
-      html: "<b> salut</b>" +
-        `<br> votre lien de recuperation <a href="http://localhost:4200/reset-password/${token}"> http://localhost:4200/reset-password/${token}</a>`
-    };
-
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log('Email sent: ' + info.response);
-      }
-    });
-  } catch (error) {
-    console.log(error)
-  }
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent:' + info.response);
+    }
+  });
 }
+module.exports = { send: send }

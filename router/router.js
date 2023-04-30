@@ -20,7 +20,11 @@ const {
     countUsersByRole,
     userStat,
     updateProjet,
-    ajouterAxe
+    ajouterAxe,
+    searchProjet,
+    ajouterTache,
+    getAxes,
+    updateTache
 } = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
 // const protect = require('../middlewares/auth.midd')
@@ -85,6 +89,7 @@ router.get('/users/stats', userStat);
 router.post('/sign-up', registerValidation, registerUser)
 router.post('/projet', registerValidationProjet, ajoutProjet)
 router.post('/axeprojet', ajouterAxe)
+router.post('/:id/tacheprojet', ajouterTache)
 //login
 router.post('/sign-in', loginValidation, loginUser)
 //get
@@ -92,13 +97,19 @@ router.get('/', auth, getUser)
 //get profile
 router.get('/profile', auth, getUserPofile)
 //get projet
-router.get('/projet', auth, getProjet)
-router.get('/projets/:id', getIdProjet);
+router.get('/projet', getProjet)
+router.get('/projet/:id', getIdProjet);
+router.get('/search', searchProjet)
+router.get('/axes', getAxes);
+//router.get('/:projetId/axes', getAxes);
+
+
 
 //modifier profile
 router.put('/profile', auth, editUserPofile)
 //modifier projet
 router.put('/projet/modifier/:id', updateProjet)
+router.put('/tache/:idProjet/:idTache', updateTache)
 //ajout file
 router.post('/profile/avatar', auth, upload.single('myFile'), imagePofile)
 router.post('/profile/cv', auth, uploadcv.single('cv'), saveCv)
@@ -107,6 +118,7 @@ router.post('/projet/contrat', uploadcontrat.single('contrat'), contrat)
 router.post('/reset-password', sendForgetPasswordEmail)
 router.post('/')
 router.get('/')
+
 // get token
 //router.get('/reset-password/:token', getPasswordLink)
 // update password

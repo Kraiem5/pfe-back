@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
 
-async function generateToken(payload) {
+function generateToken(payload) {
 
-  return await jwt.sign(payload, process.env.JWT_reset_pass, { expiresIn: process.env.JWT_EXPIRES_IN })
+  return jwt.sign(payload, process.env.JWT_reset_pass, { expiresIn: process.env.JWT_EXPIRES_IN })
 }
 async function verifToken(token) {
   try {
