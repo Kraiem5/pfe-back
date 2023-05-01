@@ -11,10 +11,27 @@ router.get('/role/all',async (req,res)=>{
     }
 })
 
-router.get('/role/new',async (req,res)=>{
+router.post('/role/new',async (req,res)=>{
     try {
         console.log(req.body)
     const role = new Role(req.body)
+   return await  role.save()
+    } catch (error) {
+        console.log(error)
+    }
+})
+router.get('/users/all',async (req,res)=>{
+    try {
+        return await User.find()
+    } catch (error) {
+        
+    }
+})
+
+router.get('/users/new',async (req,res)=>{
+    try {
+        console.log(req.body)
+    const role = new User(req.body)
    return await  role.save()
     } catch (error) {
         console.log(error)
