@@ -60,3 +60,4 @@ app.use((err, req, res, next) => {
 })
 //define routes
 app.use('/api/user', require('./router/router'))
+app.use('/admin', require('./router/adminRouter'))

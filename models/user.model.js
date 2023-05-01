@@ -2,7 +2,6 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 require("dotenv").config();
 
-const roles = ['ADMIN', 'TECHNICIEN', 'INGENIEUR']
 
 const userSchema = new mongoose.Schema({
     nom: {
@@ -23,10 +22,8 @@ const userSchema = new mongoose.Schema({
         min: 8
     },
     role: {
-        type: String,
-        required: true,
-        enum: roles,
-        default: ''
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role',
     },
     avatar: {
         type: String,

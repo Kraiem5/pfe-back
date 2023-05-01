@@ -66,7 +66,7 @@ const loginUser = async (req, res) => {
 
     const { email, password } = req.body
     try {
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email }).populate('role')
         if (!user) {
             return res.status(400).json({
                 errors: [{ msg: 'Cannot find user with those credentials!' }]
@@ -82,13 +82,14 @@ const loginUser = async (req, res) => {
 
         const payload = {
             user: {
-                id: user._id
+                id: user._id,
+                role:user.role.name
             }
         }
 
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN }, (error, token) => {
             if (error) throw error
-            res.json({ token })
+            res.json({ token:token,admin :user.role.name ==="Admin"?true:false})
         })
 
     } catch (error) {
