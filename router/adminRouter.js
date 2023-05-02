@@ -17,24 +17,21 @@ router.post('/new', async (req, res) => {
 router.get('/all', async (req, res) => {
     try {
         const role = await Role.find()
-        console.log(role);
+        
         return res.json(role)
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Erreur lors de la récupération des rôles' });
     }
 })
 router.put('/modifier/:id', async (req, res) => {
     try {
-        const role = await Role.findById(req.params.id)
-        if (role) {
-            role.name = req.body.name;
-            role.description = req.body.description;
-            const result = await role.save();
+        const result = await Role.findByIdAndUpdate(req.params.id,{$set:req.body})
+        
             res.status(200).json({ message: 'Rôle modifié avec succès', data: result });
-        } else {
-            res.status(404).json({ message: 'Rôle non trouvé' });
-        }
+       
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Erreur lors de la modification du rôle' });
     }
 });
