@@ -13,6 +13,14 @@ const morgan = require('morgan')
 app = express()
 app.use(cors())
 
+// CORS
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+    next();
+});
+
 
 
 mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -41,18 +49,6 @@ const port = process.env.port
 app.listen(port, () => {
     console.log(`connected at ${port}  `);
 })
-// app.get('/', async (req, res) => {
-//     try {
-//         const profiles = await Profile.find({}).exec()
-//         console.log(profiles);
-//         const profil = profiles && profiles.length ? profiles[0] : null
-//         res.render('index', { profil })
-
-//     } catch (error) {
-//         console.log(error);
-//     }
-// })
-
 
 app.use((err, req, res, next) => {
     console.log(util.inspect(err, { compact: false, depth: 5, breakLength: 80, colors: true }));
@@ -60,4 +56,5 @@ app.use((err, req, res, next) => {
 })
 //define routes
 app.use('/api/user', require('./router/router'))
-app.use('/admin', require('./router/adminRouter'))
+app.use('/api/role', require('./router/adminRouter'));
+
