@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const User = require('../models/user.model');
 const { Role } = require('../models/role.model');
+const { validationResult } = require('express-validator');
 
 router.post('/new', async (req, res) => {
     try {
@@ -47,6 +48,37 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la suppression du rôle' });
     }
 });
+router.post('/sign-up', async (req,res)=>{
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res
+            .status(400)
+            .json({ errors: errors.array({ onlyFirstError: true }) })
+    }
+
+    const { nom, prenom, email, password, role, cin } = req.body
+    try {
+        // email existe
+        let user = await User.findOne({ email: email })
+        if (user) {
+            return res.status(403).json({ msg: "utilisateur déja existe" })
+        }
+        else {
+            // else define new user
+            const newUser = new User({
+                nom, prenom, email, password, role, cin
+            })
+            // save new user
+            await newUser.save()
+            
+            res.status(200).send({ status: true })
+        }
+    } catch (error) {
+        console.error('erreur', error)
+        res.status(400).send({ status: false })
+
+    }
+})
 
 
 module.exports = router
