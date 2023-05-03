@@ -83,13 +83,13 @@ const loginUser = async (req, res) => {
         const payload = {
             user: {
                 id: user._id,
-                role:user.role.name
+                role: user.role.name
             }
         }
 
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN }, (error, token) => {
             if (error) throw error
-            res.json({ token:token,admin :user.role.name ==="Admin"?true:false})
+            res.json({ token: token, admin: user.role.name === "Admin" ? true : false })
         })
 
     } catch (error) {
@@ -99,7 +99,7 @@ const loginUser = async (req, res) => {
 }
 const getUser = async (req, res) => {
     try {
-        const user = await User.findOne({ _id: req.user.id })
+        const user = await User.find(req.user)
         console.log(user);
         res.json(user)
     } catch (error) {

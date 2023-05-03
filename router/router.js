@@ -93,7 +93,7 @@ router.post('/:id/tacheprojet', ajouterTache)
 //login
 router.post('/sign-in', loginValidation, loginUser)
 //get
-router.get('/', auth, getUser)
+router.get('/', getUser)
 //get profile
 router.get('/profile', auth, getUserPofile)
 //get projet
