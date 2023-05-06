@@ -56,5 +56,5 @@ app.use((err, req, res, next) => {
 })
 //define routes
 app.use('/api/user', require('./router/router'))
-app.use('/api/role', require('./router/adminRouter'));
+app.use('/api/admin', require('./router/adminRouter'));
 

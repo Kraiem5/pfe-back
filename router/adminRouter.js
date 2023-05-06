@@ -15,28 +15,28 @@ router.post('/new', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la création du rôle' });
     }
 });
-router.get('/all', async (req, res) => {
+router.get('/role/all', async (req, res) => {
     try {
         const role = await Role.find()
-        
+
         return res.json(role)
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Erreur lors de la récupération des rôles' });
     }
 })
-router.put('/modifier/:id', async (req, res) => {
+router.put('/role/modifier/:id', async (req, res) => {
     try {
-        const result = await Role.findByIdAndUpdate(req.params.id,{$set:req.body})
-        
-            res.status(200).json({ message: 'Rôle modifié avec succès', data: result });
-       
+        const result = await Role.findByIdAndUpdate(req.params.id, { $set: req.body })
+
+        res.status(200).json({ message: 'Rôle modifié avec succès', data: result });
+
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Erreur lors de la modification du rôle' });
     }
 });
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/role/delete/:id', async (req, res) => {
     try {
         const role = await Role.findByIdAndDelete(req.params.id);
         if (!role) {
@@ -48,7 +48,7 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la suppression du rôle' });
     }
 });
-router.post('/sign-up', async (req,res)=>{
+router.post('/sign-up', async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
         return res
@@ -70,7 +70,7 @@ router.post('/sign-up', async (req,res)=>{
             })
             // save new user
             await newUser.save()
-            
+
             res.status(200).send({ status: true })
         }
     } catch (error) {
@@ -79,6 +79,38 @@ router.post('/sign-up', async (req,res)=>{
 
     }
 })
+router.delete('/deleteUser/:id', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User non trouvé' });
+        }
+        res.status(200).json({ message: 'User supprimé avec succès' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erreur lors de la suppression du rôle' });
+    }
+});
+router.put('/modifierUser/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (user) {
+            const result = await User.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
+                .select('-password');
+            res.json({
+                status: true,
+                result: result
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                msg: 'User not found'
+            });
+        }
+    } catch (error) {
+        console.log('Update user', error);
+    }
+});
 
 
 module.exports = router

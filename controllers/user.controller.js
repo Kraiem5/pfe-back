@@ -107,6 +107,7 @@ const getUser = async (req, res) => {
         res.json({ msg: 'Erreur de serveur!' })
     }
 }
+
 const sendForgetPasswordEmail = async (req, res) => {
     const email = req.body['email']
     try {
@@ -158,9 +159,6 @@ const editUserPofile = async (req, res) => {
     try {
         console.log(req.user, req.body)
         const user = await User.findById(req.user.id);
-        // const { cin, specialite } = req.body
-        // const cv = req.file.cv || ''
-        // const image = req.file.image || gravatar.url(email, { s: '200', r: 'pg', d: '404' })
         if (user) {
             const result = await User.findByIdAndUpdate(req.user.id, { $set: req.body })
                 .select('-password')
