@@ -109,7 +109,7 @@ router.get('/axes', getAxes);
 router.put('/profile', auth, editUserPofile)
 //modifier projet
 router.put('/projet/modifier/:id', updateProjet)
-router.put('/tache/:idProjet/:idTache', updateTache)
+router.put('/tache/:idProjet', updateTache)
 //ajout file
 router.post('/profile/avatar', auth, upload.single('myFile'), imagePofile)
 router.post('/profile/cv', auth, uploadcv.single('cv'), saveCv)

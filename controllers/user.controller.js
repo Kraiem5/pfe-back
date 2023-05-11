@@ -265,30 +265,8 @@ const updateProjet = async (req, res) => {
 }
 const updateTache = async (req, res) => {
     try {
-        const { name, timeslot, pourcentage } = req.body;
-        const projet = await Projet.findOne({ _id: req.params.idProjet });
-        console.log("projet", projet);
-        const tache = await Projet.findOneAndUpdate(
-
-            { "axes.tache._id": req.params.idTache },
-            {
-                $set: {
-                    "axes.$[i].tache.$[j].name": name,
-                    "axes.$[i].tache.$[j].timeslot": timeslot,
-                    "axes.$[i].tache.$[j].pourcentage": pourcentage
-                }
-            },
-            {
-                arrayFilters: [{ "i.tache._id": req.params.idTache }, { "j._id": req.params.idTache }],
-                new: true
-            }
-        );
-        if (!projet) {
-            return res.status(404).json({ msg: "Projet not found" });
-        }
-        if (!tache) {
-            return res.status(404).json({ msg: "Tache not found" });
-        }
+        const projet = await Projet.findOneAndUpdate({ _id: req.params.idProjet },{$set:req.body},{new:true});
+                
         res.json(projet);
     } catch (err) {
         console.error(err.message);
