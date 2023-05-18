@@ -5,7 +5,7 @@ const send = (x = "", sendto, subjects, htmls) => {
     service: 'gmail',
     auth: {
       user: "belkhiriaahmed617@gmail.com",
-      pass: Mailer_Password = "ctvsfehqayqfelur"
+      pass: Mailer_Password = "lgliydhcthrvgnep"
     }
   });
   let mailOptions = {

@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
     },
     mean_pourcentage_axes: {
         type: String,
+        default: 0,
     },
     axes: [{
         _id: {
@@ -52,6 +53,7 @@ const userSchema = new mongoose.Schema({
         },
         mean_pourcentage_taches: {
             type: Number,
+            default: 0,
         },
         tache: [{
             _id: {
@@ -70,7 +72,7 @@ const userSchema = new mongoose.Schema({
 
             },
             pourcentage: {
-                type: Number,default:0,
+                type: Number, default: 0,
 
             },
         }]

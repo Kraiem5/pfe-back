@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
     }
     ,
     cin: {
-        type: String,
+        type: Number,
     },
     specialite: {
         type: String,

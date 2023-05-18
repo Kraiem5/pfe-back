@@ -10,6 +10,7 @@ const mailer = require('../utils/sendPasswordRecoveryMail');
 const { config } = require('dotenv');
 const multer = require('multer');
 const { ObjectId } = require('mongodb');
+const { Role } = require('../models/role.model');
 
 
 
@@ -79,14 +80,12 @@ const loginUser = async (req, res) => {
                 errors: [{ msg: 'Cannot find user with those credentials!' }]
             })
         }
-
         const payload = {
             user: {
                 id: user._id,
                 role: user.role.name
             }
         }
-
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN }, (error, token) => {
             if (error) throw error
             res.json({ token: token, admin: user.role.name === "Admin" ? true : false })
@@ -100,14 +99,12 @@ const loginUser = async (req, res) => {
 const getUser = async (req, res) => {
     try {
         const user = await User.find(req.user)
-        console.log(user);
         res.json(user)
     } catch (error) {
         console.error('fff', error.message)
         res.json({ msg: 'Erreur de serveur!' })
     }
 }
-
 const sendForgetPasswordEmail = async (req, res) => {
     const email = req.body['email']
     try {
@@ -148,7 +145,6 @@ const updatePassword = async (req, res) => {
         const newpassword = await bcrypt.hash(req.body.password, salt)
         const result = await User.findByIdAndUpdate(verif.user.id, { $set: { password: newpassword } })
             .select('-password')
-        console.log(result)
         res.send({ status: true, message: 'passorw updated successfully' })
     } catch (error) {
         console.log(error)
@@ -157,7 +153,6 @@ const updatePassword = async (req, res) => {
 //***********get user */
 const editUserPofile = async (req, res) => {
     try {
-        console.log(req.user, req.body)
         const user = await User.findById(req.user.id);
         if (user) {
             const result = await User.findByIdAndUpdate(req.user.id, { $set: req.body })
@@ -178,7 +173,6 @@ const editUserPofile = async (req, res) => {
 }
 const getUserPofile = async (req, res) => {
     try {
-        console.log(req.user, req.body)
         const user = await User.findById(req.user.id);
         if (user) {
             return res.json({
@@ -198,9 +192,7 @@ const getUserPofile = async (req, res) => {
 }
 const getProjet = async (req, res) => {
     try {
-
         const projet = await Projet.find(req.projet);
-        console.log('projet', projet)
         if (projet) {
             return res.json({
                 status: true,
@@ -213,8 +205,6 @@ const getProjet = async (req, res) => {
                 msg: 'projet not found'
             })
         }
-
-
     } catch (error) {
         console.log("get projet", error)
     }
@@ -265,8 +255,7 @@ const updateProjet = async (req, res) => {
 }
 const updateTache = async (req, res) => {
     try {
-        const projet = await Projet.findOneAndUpdate({ _id: req.params.idProjet },{$set:req.body},{new:true});
-                
+        const projet = await Projet.findOneAndUpdate({ _id: req.params.idProjet }, { $set: req.body }, { new: true });
         res.json(projet);
     } catch (err) {
         console.error(err.message);
@@ -274,72 +263,9 @@ const updateTache = async (req, res) => {
     }
 };
 
-
-// const updateTache = async (req, res) => {
-//     try {
-//         const { name, timeslot, pourcentage } = req.body;
-//         const projet = await Projet.findOneAndUpdate(
-//             {
-//                 "_id": req.params.idProjet,
-//                 "axes._id": req.params.idAxe,
-//                 "axes.tache._id": req.params.idTache
-//             },
-//             {
-//                 $set: {
-//                     "axes.$[i].tache.$[j].name": name,
-//                     "axes.$[i].tache.$[j].timeslot": timeslot,
-//                     "axes.$[i].tache.$[j].pourcentage": pourcentage
-//                 }
-//             },
-//             {
-//                 arrayFilters: [
-//                     { "i._id": req.params.idAxe },
-//                     { "j._id": req.params.idTache }
-//                 ],
-//                 new: true
-//             }
-//         );
-//         if (!projet) {
-//             return res.status(404).json({ msg: "Projet not found" });
-//         }
-//         res.json(projet);
-//     } catch (err) {
-//         console.error(err.message);
-//         res.status(500).send("Server Error");
-//     }
-// };
-
-const userStat = async (req, res) => {
-    try {
-        const adminCount = await User.countDocuments({ role: 'ADMIN' });
-        const technicienCount = await User.countDocuments({ role: 'TECHNICIEN' });
-        const ingenieurCount = await User.countDocuments({ role: 'INGENIEUR' });
-        const totalCount = adminCount + technicienCount + ingenieurCount;
-        res.json({
-            status: true,
-            result: {
-                adminCount,
-                technicienCount,
-                ingenieurCount,
-                totalCount,
-            }
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            status: false,
-            msg: 'Internal server error',
-        });
-    }
-}
 const imagePofile = async (req, res) => {
-    console.log("req.files", req.file)
     try {
-        console.log(req.user, req.body)
         const user = await User.findById(req.user.id);
-        // const { cin, specialite } = req.body
-        // const cv = req.file.cv || ''
-        // const image = req.file.image || gravatar.url(email, { s: '200', r: 'pg', d: '404' })
         if (user) {
             const result = await User.findByIdAndUpdate(req.user.id, { $set: { avatar: req.file.filename } })
                 .select('-password')
@@ -358,13 +284,8 @@ const imagePofile = async (req, res) => {
     }
 }
 const saveCv = async (req, res) => {
-    console.log("req.files", req.file)
     try {
-        console.log(req.user, req.body)
         const user = await User.findById(req.user.id);
-        // const { cin, specialite } = req.body
-        // const cv = req.file.cv || ''
-        // const image = req.file.image || gravatar.url(email, { s: '200', r: 'pg', d: '404' })
         if (user) {
             const result = await User.findByIdAndUpdate(req.user.id, { $set: { cv: req.file.filename } })
                 .select('-password')
@@ -383,22 +304,8 @@ const saveCv = async (req, res) => {
     }
 }
 const contrat = async (req, res) => {
-    console.log("req.files", req.file)
     try {
-        console.log(req.projet, req.body)
         res.send({ result: 'http://localhost:3000/contrat/' + req.file.filename })
-        // if (projet) {
-        //     const result = await Projet.findByIdAndUpdate(req.projet.id, { $set: { contrat: req.file.filename } })
-        //     res.json({
-        //         status: true,
-        //         result: result
-        //     })
-        // } else {
-        //     res.status(404).json({
-        //         succes: false,
-        //         msg: 'contrat not found'
-        //     })
-        // }
     } catch (error) {
         console.log("update contrat", error)
     }
@@ -475,52 +382,18 @@ const ajouterTache = async (req, res) => {
             timeslot: timeslot, // Utiliser la valeur de timeslot provenant de req.body pour définir le temps alloué à la tâche
             pourcentage: pourcentage, // Utiliser la valeur de pourcentage provenant de req.body pour définir le pourcentage de progression de la tâche
         };
-        console.log('nouvelle', nouvelleTache);
         axe.tache.push(nouvelleTache);
         // Sauvegarder les modifications du projet
 
         await projet.save();
-        console.log("proj", projet);
         res.status(200).send({ status: true, message: "Tâche ajoutée avec succès à l'axe" });
     } catch (error) {
         console.error('Erreur', error)
         res.status(400).send({ status: false, message: "Erreur lors de l'ajout de la tâche à l'axe" });
     }
-};
+}
 
-//     const { id_axe, name, timeslot, pourcentage } = req.body;
-//     const id_tache = new mongoose.Types.ObjectId();
-//     try {
-//         // Récupérer le projet à mettre à jour
-//         const projet = await Projet.findOne({ "axes._id": id_axe });
-//         if (!projet) {
-//             return res.status(404).send({ message: "Projet introuvable" });
-//         }
-//         // Trouver l'axe dans le tableau axes du projet
-//         const axe = projet.axes.find(axe => axe._id.toString() === id_axe);
-//         if (!axe) {
-//             return res.status(404).send({ message: "Axe introuvable dans le projet" });
-//         }
-//         // Vérifier que l'axe a un tableau tache avant d'ajouter la nouvelle tâche
-//         if (!axe.tache) {
-//             axe.tache = [];
-//         }
-//         // Ajouter la nouvelle tâche à l'axe en créant un nouvel objet de tâche
-//         const nouvelleTache = {
-//             _id: id_tache,
-//             name: name, // Utiliser la valeur de name provenant de req.body pour définir le nom de la tâche
-//             timeslot: timeslot, // Utiliser la valeur de name provenant de req.body pour définir le nom de la tâche
-//             pourcentage: pourcentage, // Utiliser la valeur de name provenant de req.body pour définir le nom de la tâche
-//         };
-//         axe.tache.push(nouvelleTache);
-//         // Sauvegarder les modifications du projet
-//         await projet.save();
-//         res.status(200).send({ status: true, message: "Tâche ajoutée avec succès à l'axe" });
-//     } catch (error) {
-//         console.error('Erreur', error)
-//         res.status(400).send({ status: false, message: "Erreur lors de l'ajout de la tâche à l'axe" });
-//     }
-// };
+
 const getAxes = async (req, res) => {
     try {
         const axes = await Projet.distinct('axes'); // Utiliser distinct pour récupérer uniquement les _id des axes
@@ -530,40 +403,79 @@ const getAxes = async (req, res) => {
         res.status(500).send({ message: "Erreur lors de la récupération des axes" });
     }
 }
-
-const countUsersByRole = async () => {
+const calculateTaskPercentages = async (req, res) => {
     try {
-        const roles = ['ADMIN', 'TECHNICIEN', 'INGENIEUR'];
-        const counts = {};
-        for (const role of roles) {
-            const count = await User.countDocuments({ role });
-            counts[role] = count;
+        const projects = await Projet.find();
+        // Calculate task percentages and averages for each project
+        for (let i = 0; i < projects.length; i++) {
+            const project = projects[i];
+            const axes = project.axes;
+            let totalPourcentage = 0;
+            axes.forEach(axis => {
+                let axisTotalPourcentage = 0;
+                let taskCount = axis.tache.length;
+                axis.tache.forEach(tache => {
+                    axisTotalPourcentage += tache.pourcentage;
+                });
+                const meanPourcentageTaches = taskCount > 0 ? axisTotalPourcentage / taskCount : 0;
+                axis.mean_pourcentage_taches = meanPourcentageTaches;
+                totalPourcentage += meanPourcentageTaches;
+            });
+            const meanPourcentageAxes = axes.length > 0 ? totalPourcentage / axes.length : 0;
+            project.mean_pourcentage_axes = meanPourcentageAxes;
+            // Save the updated project
+            console.log("pro", project.mean_pourcentage_axes);
+            await project.save();
         }
-        console.log('Nombre d\'utilisateurs par rôle :', counts);
+
+        return res.status(200).json({ result: projects });
     } catch (error) {
-        console.error('Erreur lors du comptage des utilisateurs :', error);
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+const calculateUserStatistics = async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments();
+        const adminCount = await User.countDocuments({ role: await Role.findOne({ name: 'Admin' }) });
+        const engineerCount = await User.countDocuments({ role: await Role.findOne({ name: 'ingenieur' }) });
+        const technicianCount = await User.countDocuments({ role: await Role.findOne({ name: 'technicien' }) });
+
+        res.json({
+            totalUsers,
+            adminCount,
+            engineerCount,
+            technicianCount
+        });
+    } catch (error) {
+        console.error('Error calculating user statistics:', error);
+        res.status(500).json({ error: 'An error occurred while calculating user statistics' });
     }
 };
 const searchProjet = async (searchTerm) => {
-
-    const regex = new RegExp('^' + searchTerm, 'i');
-    const result = await Projet.findOne({
-        $or: [
-            { nom_projet: regex },
-            { client: regex },
-            { description: regex },
-            { short_description: regex },
-            { begin: regex },
-            { end: regex },
-            { user: regex },
-            { code_postal: regex },
-            { contrat: regex },
-            { 'axes.name': regex },
-        ],
-    });
-    return result;
+    try {
+        const regex = new RegExp(searchTerm, 'gi');
+        const projet = await Projet.find({
+            $or: [
+                { nom_projet: regex },
+                { client: regex },
+                { short_description: regex },
+                { begin: regex },
+                { end: regex },
+                { user: regex },
+                { code_postal: regex },
+            ],
+        });
+        if (projet) {
+            return projet;
+        } else {
+            return null;
+        }
+    } catch (err) {
+        throw new Error(err);
+    }
 };
-
 module.exports = {
     saveCv,
     imagePofile,
@@ -577,13 +489,13 @@ module.exports = {
     contrat,
     ajoutProjet,
     getProjet,
-    countUsersByRole,
+    calculateUserStatistics,
     getIdProjet,
-    userStat,
     updateProjet,
     ajouterAxe,
     searchProjet,
     ajouterTache,
     getAxes,
-    updateTache
+    updateTache,
+    calculateTaskPercentages
 }

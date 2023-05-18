@@ -17,14 +17,14 @@ const {
     editUserPofile,
     getUserPofile,
     getIdProjet,
-    countUsersByRole,
-    userStat,
+    calculateUserStatistics,
     updateProjet,
     ajouterAxe,
     searchProjet,
     ajouterTache,
     getAxes,
-    updateTache
+    updateTache,
+    calculateTaskPercentages
 } = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
 // const protect = require('../middlewares/auth.midd')
@@ -44,7 +44,7 @@ let upload = multer({
 
     }),
     limits: {
-        fileSize: 1000000
+        fileSize: 10000000
     },
     fileFilter: (req, file, cb) => {
         console.log(file);
@@ -84,7 +84,6 @@ let uploadcontrat = multer({
     }
 })
 
-router.get('/users/stats', userStat);
 //register
 router.post('/sign-up', registerValidation, registerUser)
 router.post('/projet', registerValidationProjet, ajoutProjet)
@@ -99,7 +98,22 @@ router.get('/profile', auth, getUserPofile)
 //get projet
 router.get('/projet', getProjet)
 router.get('/projet/:id', getIdProjet);
-router.get('/search', searchProjet)
+router.post('/search', async (req, res) => {
+    try {
+        const projet = await searchProjet(req.body.searchTerm);
+        if (projet) {
+            res.json(projet);
+        } else {
+            res.status(400).json({ message: 'Élément non trouvé' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.get('/projects/calculate-task-percentages', calculateTaskPercentages);
+router.get('/statistics', calculateUserStatistics);
+
 router.get('/axes', getAxes);
 //router.get('/:projetId/axes', getAxes);
 

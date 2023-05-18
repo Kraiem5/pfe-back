@@ -1,4 +1,6 @@
 const express = require('express')
+const fileUpload = require('express-fileupload')
+const pdfParse = require('pdf-parse')
 const mongoose = require('mongoose')
 require("dotenv").config()
 const bodyParser = require('body-parser')
@@ -6,6 +8,7 @@ mongoose.set('strictQuery', false)
 const cors = require('cors')
 const multer = require('multer');
 const path = require('path')
+
 
 
 const util = require('util')
@@ -57,4 +60,5 @@ app.use((err, req, res, next) => {
 //define routes
 app.use('/api/user', require('./router/router'))
 app.use('/api/admin', require('./router/adminRouter'));
+
 
