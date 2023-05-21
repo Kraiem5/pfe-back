@@ -89,7 +89,7 @@ let uploadcontrat = multer({
 let upDocuments = multer({
     storage: multer.diskStorage({
         destination: (req, file, cb) => {
-            cb(null, 'Documents')
+            cb(null, 'documents')
         },
         filename: (req, file, cb) => {
             cb(null, Date.now() + req.user.id + '-' + file.originalname)
@@ -117,8 +117,8 @@ router.get('/', getUser)
 router.get('/profile', auth, getUserPofile)
 //document
 router.get('/document/:parentId', auth, getMyDoc)
-router.post('/document/newDossier', auth, newDoc)
-router.post('/document/newFile', auth,upload.single('myFile'), newFile)
+router.post('/document/new/:parentId', auth, newDoc)
+router.post('/document/newFile', auth,upDocuments.single('myFile'), newFile)
 //get projet
 router.get('/projet', getProjet)
 router.get('/projet/:id', getIdProjet);

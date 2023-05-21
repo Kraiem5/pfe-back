@@ -41,6 +41,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.static(path.join(__dirname, 'upload')))
 app.use(express.static('upload'));
+app.use('/documents', express.static(__dirname + '/documents/'));
 app.use('/upload', express.static(__dirname + '/upload/'));
 app.use('/cv', express.static(__dirname + '/cv/'));
 app.use('/contrat', express.static(__dirname + '/contrat/'));

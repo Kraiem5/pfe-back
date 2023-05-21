@@ -473,7 +473,8 @@ const searchProjet = async (searchTerm) => {
 };
 const getMyDoc = async (req, res) => {
     try {
-        const docs = await Document.find({user:req.user.id,parent:req.params.parentId});
+        const parent = req.params.parentId ==0?null:req.params.parentId
+        const docs = await Document.find({user:req.user.id,parent:parent });
         if (docs) {
             return res.json({
                 status: true,
@@ -493,6 +494,7 @@ const getMyDoc = async (req, res) => {
 const newDoc = async (req, res) => {
     try {
         req.body.user = req.user.id
+        req.body.parent=req.params.parentId==0?null   :req.params.parentId
         const docs = new Document(req.body);
         let result = await docs.save()
             return res.json({
@@ -507,15 +509,11 @@ const newDoc = async (req, res) => {
 }
 const newFile = async (req, res) => {
     try {
-        console.log(req.body.file)
-        req.body.type="";
-        req.body.extension="";
-        const docs = new Document(req.body);
-        let result = await docs.save()
-            return res.json({
-                status: true,
-                data: result
-            })
+        console.log(req.file)
+        req.body.type="PDF";
+        req.body.size=req.file.size;
+        req.body.path=req.file.filename;
+       return res.send(req.body)
     
         
     } catch (error) {
