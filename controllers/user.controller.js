@@ -11,6 +11,7 @@ const { config } = require('dotenv');
 const multer = require('multer');
 const { ObjectId } = require('mongodb');
 const { Role } = require('../models/role.model');
+const { Document } = require('../models/document.model');
 
 
 
@@ -476,6 +477,57 @@ const searchProjet = async (searchTerm) => {
         throw new Error(err);
     }
 };
+const getMyDoc = async (req, res) => {
+    try {
+        const docs = await Document.find({user:req.user.id,parent:req.params.parentId});
+        if (docs) {
+            return res.json({
+                status: true,
+                data: docs
+            })
+        }
+        else {
+            res.status(404).send({
+                status: false,
+                msg: 'docs not found'
+            })
+        }
+    } catch (error) {
+        console.log("update profile", error)
+    }
+}
+const newDoc = async (req, res) => {
+    try {
+        req.body.user = req.user.id
+        const docs = new Document(req.body);
+        let result = await docs.save()
+            return res.json({
+                status: true,
+                data: result
+            })
+    
+        
+    } catch (error) {
+        console.log("update profile", error)
+    }
+}
+const newFile = async (req, res) => {
+    try {
+        console.log(req.body.file)
+        req.body.type="";
+        req.body.extension="";
+        const docs = new Document(req.body);
+        let result = await docs.save()
+            return res.json({
+                status: true,
+                data: result
+            })
+    
+        
+    } catch (error) {
+        console.log("update profile", error)
+    }
+}
 module.exports = {
     saveCv,
     imagePofile,
@@ -497,5 +549,7 @@ module.exports = {
     ajouterTache,
     getAxes,
     updateTache,
-    calculateTaskPercentages
+    calculateTaskPercentages,
+    getMyDoc, newDoc ,newFile
+
 }

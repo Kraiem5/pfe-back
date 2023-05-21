@@ -24,7 +24,10 @@ const {
     ajouterTache,
     getAxes,
     updateTache,
-    calculateTaskPercentages
+    calculateTaskPercentages,
+    getMyDoc,
+    newDoc,
+    newFile
 } = require('../controllers/user.controller')
 const auth = require('../middlewares/auth')
 // const protect = require('../middlewares/auth.midd')
@@ -83,7 +86,24 @@ let uploadcontrat = multer({
         cb(null, true)
     }
 })
+let upDocuments = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, 'Documents')
+        },
+        filename: (req, file, cb) => {
+            cb(null, Date.now() + req.user.id + '-' + file.originalname)
+        }
 
+    }),
+    limits: {
+        fileSize: 10000000
+    },
+    fileFilter: (req, file, cb) => {
+        console.log(file);
+        cb(null, true)
+    }
+})
 //register
 router.post('/sign-up', registerValidation, registerUser)
 router.post('/projet', registerValidationProjet, ajoutProjet)
@@ -95,6 +115,10 @@ router.post('/sign-in', loginValidation, loginUser)
 router.get('/', getUser)
 //get profile
 router.get('/profile', auth, getUserPofile)
+//document
+router.get('/document/:parentId', auth, getMyDoc)
+router.post('/document/newDossier', auth, newDoc)
+router.post('/document/newFile', auth,upload.single('myFile'), newFile)
 //get projet
 router.get('/projet', getProjet)
 router.get('/projet/:id', getIdProjet);
