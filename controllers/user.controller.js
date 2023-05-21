@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const { generateToken, verifToken } = require('../utils/generateToken');
 require("dotenv").config();
 const mailer = require('../utils/sendPasswordRecoveryMail');
+const mailUser = require('../utils/sendMailPasswordUser');
 const { config } = require('dotenv');
 const multer = require('multer');
 const { ObjectId } = require('mongodb');
@@ -38,17 +39,10 @@ const registerUser = async (req, res) => {
             })
             // save new user
             await newUser.save()
-            // implement jwt
+            console.log(email);
+            //  Envoyer l'e-mail à l'utilisateur
+            mailUser.sendEmailToUser(email, password)
 
-            // const payload ={
-            //     user :{
-            //         id: user.id
-            //     }
-            // }
-            // jwt.sign(payload , "feefefefefe", {expiresIn : 7200000},(error , token)=>{
-            //     if (error) throw error
-            //     res.json({token})
-            // })
             res.status(200).send({ status: true })
         }
     } catch (error) {
