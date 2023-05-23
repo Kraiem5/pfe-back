@@ -1,7 +1,8 @@
 const mongoose  = require("mongoose");
 const fileschema= mongoose.Schema({
     size:{type:String,default:''},
-    path:{type:String,default:''}
+    path:{type:String,default:''},
+    type:{type:String,default:''},
 })
 const roleSchema  = mongoose.Schema({
     name:String,

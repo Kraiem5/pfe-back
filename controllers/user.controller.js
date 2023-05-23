@@ -510,10 +510,14 @@ const newDoc = async (req, res) => {
 const newFile = async (req, res) => {
     try {
         console.log(req.file)
-        req.body.type="PDF";
+       
+      if(req.file){
+        let arr = req.file.originalname.split('.');
+        req.body.type= arr[arr.length-1].toUpperCase();
         req.body.size=req.file.size;
         req.body.path=req.file.filename;
        return res.send(req.body)
+      }
     
         
     } catch (error) {
