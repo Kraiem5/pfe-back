@@ -1,6 +1,8 @@
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const pdfParse = require('pdf-parse')
+const textract = require('textract');
+
 const mongoose = require('mongoose')
 require("dotenv").config()
 const bodyParser = require('body-parser')
@@ -8,12 +10,10 @@ mongoose.set('strictQuery', false)
 const cors = require('cors')
 const multer = require('multer');
 const path = require('path')
-
-
+app = express()
 
 const util = require('util')
 const morgan = require('morgan')
-app = express()
 app.use(cors())
 
 // CORS
@@ -24,6 +24,19 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use('/', express.static("public"));
+app.use(fileUpload())
+
+
+app.post("/extract-text", (req, res) => {
+    if (!req.files && !req.files.pdfFile) {
+        res.status(400);
+        res.end();
+    }
+    pdfParse(req.files.pdfFile).then(result => {
+        res.send(result.text)
+    })
+});
 
 
 mongoose.connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true })

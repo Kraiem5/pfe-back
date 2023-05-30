@@ -1,0 +1,236 @@
+   
+
+
+
+
+            +-------------------+         +------------------+
+            |                   |         |                  |
+            |    Utilisateur    |         |    Système       |
+            |                   |         |                  |
+            +--------+----------+         +--------+---------+
+                     |                            |
+          +----------+---------+       +----------+----------+
+          |                    |       |                     |
+          |  S'inscrire        +------>|     Enregistrer      |
+          |                    |       |                     |
+          +----------+---------+       +----------+----------+
+                     |                            |
+          +----------+---------+       +----------+----------+
+          |                    |       |                     |
+          |    Se connecter    +------>|     Authentifier     |
+          |                    |       |                     |
+          +----------+---------+       +----------+----------+
+                     |                            |
+          +----------+---------+       +----------+----------+
+          |                    |       |                     |
+          |  Afficher profil   +------>|   Vérifier profil    |
+          |                    |       |                     |
+          +----------+---------+       +----------+----------+
+                     |                            |
+          +----------+---------+       +----------+----------+
+          |                    |       |                     |
+          | Réinitialiser mot  +------>|  Réinitialiser mot   |
+          |     de passe      |       |     de passe        |
+          +--------------------+       +---------------------+
+
+
+
+
+
+
+
+
+
+register, login , reset , profile
+
+
+
+
+ +-------------------+          +------------------+         +-----------+
+|       User        |          |   Authentication |         |   Role    |
++-------------------+          +------------------+         +-----------+
+|   - username      |          |  + authenticate() |         | - ADMIN  |
+|   - password      |          +------------------+         |           |
+|   - email         |                                       +-----------+
+|   - firstname     |
+|   - lastname      |
+|   - role: Role     |
+|                   |
+| + register()      |
+| + login()         |
+| + reset_password()|
+| + update_profile()|
++-------------------+
+           ^
+           |
++------------------------+
+|      Database          |
++------------------------+
+|  - users: List<User>   |
+|                        |
+|  + add_user(User)      |
+|  + find_user(username) |
+|  + update_user(User)   |
++------------------------+
+
+
+
+
+
+
+
+register, login
+
+
+
+
+   +--------------+               +------------+              +------------+
+   |   User       |               |  Server    |              |  Database  |
+   +--------------+               +------------+              +------------+
+          |                              |                             |
+          |         1. Register           |                             |
+          |------------------------------->|      2. Add user to DB      |
+          |                              |<-----------------------------|
+          |                              |                             |
+          |         3. Login              |                             |
+          |------------------------------->|     4. Verify credentials   |
+          |                              |<-----------------------------|
+          |                              |     5. Generate JWT token    |
+          |                              |<-----------------------------|
+          |                              |                             |
+          |         6. Access API        |                             |
+          |------------------------------->|     7. Verify JWT token     |
+          |                              |<-----------------------------|
+          |                              |                             |
+          |         8. Reset password    |                             |
+          |------------------------------->|    9. Verify user email     |
+          |                              |    10. Generate reset token  |
+          |                              |<-----------------------------|
+          |                              |                             |
+          |                              |    11. Send reset link email|
+          |                              |-----------------------------|
+          |                              |                             |
+          |         12. Reset password   |                             |
+          |------------------------------->|   13. Verify reset token    |
+          |                              |<-----------------------------|
+          |                              |    14. Update user password |
+          |                              |<-----------------------------|
+          |                              |                             |
+
+
+
+
+
+
+
+
+
+
+register
+
+          +--------------+               +------------+              +------------+
+          |   User       |               |  Server    |              |  Database  |
+          +--------------+               +------------+              +------------+
+          |                              |                             |
+          |         1. Register          |                             |
+          |------------------------------->|      2. Add user to DB    |
+          |                              |<----------------------------|
+          |                              |                             |
+          |                              |      3. Generate JWT secret |
+          |                              |-----------------------------|
+          |                              |                             |
+          |                              |      4. Create JWT payload  |
+          |                              |-----------------------------|
+          |                              |                             |
+          |                              |      5. Sign JWT token      |
+          |                              |-----------------------------|
+          |                              |                             |
+          |                              |      6. Return JWT token    |
+          |<-----------------------------|                             |
+          |                              |                             |
+
+
+
+
+
+login
+
+
++--------------+               +------------+              +------------+
+|   User       |               |  Server    |              |  Database  |
++--------------+               +------------+              +------------+
+       |                              |                             |
+       |         1. Envoie les informations de connexion (email et mot de passe)        |                             |
+       |------------------------------>|      2. Vérifie si les informations de connexion sont valides      |
+       |                              |<------------------------------|
+       |                              |                             |
+       |                              |      3. Crée un JWT contenant les informations de l'utilisateur  |
+       |                              |-----------------------------|
+       |                              |      4. Retourne le JWT      |
+       |<------------------------------|                             |
+       |                              |                             |
+
+
+
+
+reset :
+
+
+participant Utilisateur
+participant Serveur
+database Base de données
+participant Service de messagerie
+
+Utilisateur->Serveur: Demande de réinitialisation de mot de passe
+Serveur->Base de données: Vérifie si l'adresse e-mail est associée à un compte
+Base de données-->Serveur: Renvoie la réponse
+Serveur->Service de messagerie: Génère un code de réinitialisation et l envoie par e-mail à l utilisateur
+Service de messagerie-->Serveur: Renvoie une confirmation d'envoi
+Serveur->Utilisateur: Indique que le code de réinitialisation a été envoyé
+Utilisateur->Serveur: Soumet le code de réinitialisation et le nouveau mot de passe
+Serveur->Base de données: Met à jour le mot de passe pour l'utilisateur associé au code de réinitialisation
+Base de données-->Serveur: Renvoie la réponse
+Serveur->Utilisateur: Confirme que le mot de passe a été réinitialisé et génère un JWT pour l utilisateur
+Serveur->Utilisateur: Retourne le JWT
+
+
+
+
+profile :
+
+
+   +--------------+               +------------+              +------------+
+   |   User       |               |  Server    |              |  Database  |
+   +--------------+               +------------+              +------------+
+          |                              |                             |
+          |         1. Send JWT token    |                             |
+          |------------------------------->|     2. Verify JWT token     |
+          |                              |<-----------------------------|
+          |                              |                             |
+          |         3. Get user data     |                             |
+          |<------------------------------|     4. Retrieve user data   |
+          |                              |-----------------------------|
+          |                              |                             |
+          |         5. Send updated     |                             |
+          |           user data         |                             |
+          |------------------------------->|     6. Update user data     |
+          |                              |<-----------------------------|
+          |                              |                             |
+          |                              |      7. Save user data      |
+          |                              |-----------------------------|
+          |                              |                             |
+          |         8. Return success    |                             |
+          |<------------------------------|                             |
+          |                              |                             |
+
+
+Explication des étapes :
+
+L'utilisateur envoie le JWT token dans une requête au serveur.
+Le serveur vérifie la validité du JWT token en le décodant et en vérifiant sa signature.
+Le serveur récupère les données de l'utilisateur à partir du JWT token.
+Le serveur récupère les données de l'utilisateur à partir de la base de données.
+L'utilisateur envoie les données de profil mises à jour dans une requête au serveur.
+Le serveur met à jour les données de profil de l'utilisateur dans la base de données.
+Le serveur enregistre les données de profil mises à jour dans la base de données.
+Le serveur renvoie une réponse de succès à l'utilisateur.

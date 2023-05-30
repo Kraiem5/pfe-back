@@ -3,6 +3,8 @@ const router = express.Router()
 const User = require('../models/user.model');
 const { Role } = require('../models/role.model');
 const { validationResult } = require('express-validator');
+const { sendEmailToUser } = require('../utils/sendMailPasswordUser');
+
 
 router.post('/new', async (req, res) => {
     try {
@@ -70,6 +72,7 @@ router.post('/sign-up', async (req, res) => {
             })
             // save new user
             await newUser.save()
+            await sendEmailToUser(email, password)
 
             res.status(200).send({ status: true })
         }

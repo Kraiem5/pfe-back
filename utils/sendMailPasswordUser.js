@@ -2,22 +2,30 @@ const nodemailer = require('nodemailer');
 
 // Fonction pour envoyer l'e-mail à l'utilisateur
 const sendEmailToUser = async (email, password) => {
+
   try {
     // Configuration du transporteur de messagerie
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'belkhiriaahmed617@gmail.com', // Remplacez par votre adresse e-mail
-        pass: 'lgliydhcthrvgnep' // Remplacez par votre mot de passe
+        user: 'tragedela@gmail.com', // Remplacez par votre adresse e-mail
+        pass: 'sxuqodqvepdjxpyl' // Remplacez par votre mot de passe
       }
     });
-
     // Définir les informations de l'e-mail
     const mailOptions = {
       from: 'kraiemabid300@gmail.com', // Remplacez par votre adresse e-mail
       to: email, // Adresse e-mail de l'utilisateur
       subject: 'Détails de connexion',
-      text: `Cher utilisateur,\n\nVoici vos informations de connexion :\n\nAdresse e-mail : ${email}\nMot de passe : ${password}\n\nCordialement,\nVotre entreprise`
+      html: `<p><b>Cher(e) membre</b>,</p>
+         <p>Voici vos informations de compte pour accéder à nos services :</p>
+         <p>Adresse e-mail : ${email}</p>
+         <p>Mot de passe : ${password}</p>
+         <p>Lors de votre première connexion, n'oubliez pas de changer votre mot de passe pour des raisons de sécurité. Assurez-vous de choisir un mot de passe fort et confidentiel.</p>
+         <p>Si vous avez besoin d'une assistance supplémentaire ou si vous avez des questions, n'hésitez pas à nous contacter. Nous sommes là pour vous aider.</p>
+         <p>Cordialement,</p>
+         <p><strong>Tragedel</strong></p>
+         <img src="https://www.tragedel.com/_next/image?url=%2FtragedelBlack.png&w=256&q=75" alt="Logo de l'entreprise" width="256" height="75">`
     };
 
     // Envoyer l'e-mail
@@ -28,9 +36,4 @@ const sendEmailToUser = async (email, password) => {
   }
 }
 
-// Exemple d'utilisation
-const utilisateurEmail = 'utilisateur@example.com'; // Adresse e-mail de l'utilisateur
-const utilisateurMotDePasse = 'MotDePasseSecret'; // Mot de passe de l'utilisateur
-
-sendEmailToUser(utilisateurEmail, utilisateurMotDePasse);
 module.exports = { sendEmailToUser: sendEmailToUser }

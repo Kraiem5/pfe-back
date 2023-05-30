@@ -1,0 +1,4 @@
+06/02: 
+creation d'un projet html , css avec l'utilisation du bootstrap (test) 
+13/02: 
+creation d'un CRUD avec recherche : creation du partie front avec angular , partie backund avec nodejs plus la connexion avec mongodb

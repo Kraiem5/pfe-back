@@ -24,6 +24,7 @@
     "nodemon": "^2.0.20",
     "path": "^0.12.7",
     "pdf-parse": "^1.1.1",
+    "textract": "^2.5.0",
     "util": "^0.12.5"
   },
   "devDependencies": {

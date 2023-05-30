@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const { generateToken, verifToken } = require('../utils/generateToken');
 require("dotenv").config();
 const mailer = require('../utils/sendPasswordRecoveryMail');
-const mailUser = require('../utils/sendMailPasswordUser');
+const { sendEmailToUser } = require('../utils/sendMailPasswordUser');
 const { config } = require('dotenv');
 const multer = require('multer');
 const { ObjectId } = require('mongodb');
@@ -41,8 +41,8 @@ const registerUser = async (req, res) => {
             await newUser.save()
             console.log(email);
             //  Envoyer l'e-mail à l'utilisateur
-            mailUser.sendEmailToUser(email, password)
-
+            await sendEmailToUser(email, password)
+            //console.log(mailUser.sendEmailToUser(email, password));
             res.status(200).send({ status: true })
         }
     } catch (error) {
@@ -89,6 +89,28 @@ const loginUser = async (req, res) => {
     } catch (error) {
         console.error('fff', error.message)
         res.json({ msg: 'Erreur de serveur!' })
+    }
+}
+const modifierPasswordApresConnexion = async (req, res) => {
+    try {
+        const { ancienMotDePasse, nouveauMotDePasse } = req.body;
+        const userId = req.user.id;
+        // Vérification de l'ancien mot de passe
+        const utilisateur = await User.findById(userId);
+        if (!utilisateur) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+        }
+        const motDePasseValide = await bcrypt.compare(ancienMotDePasse, utilisateur.password);
+        if (!motDePasseValide) {
+            return res.status(400).json({ message: 'Ancien mot de passe incorrect.' });
+        }
+        // Mise à jour du mot de passe de l'utilisateur
+        utilisateur.password = nouveauMotDePasse;
+        await utilisateur.save();
+        res.status(200).json({ message: 'Mot de passe modifié avec succès.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Une erreur s\'est produite lors de la modification du mot de passe.' });
     }
 }
 const getUser = async (req, res) => {
@@ -248,6 +270,40 @@ const updateProjet = async (req, res) => {
         return res.status(500).json({ message: 'Erreur du serveur' });
     }
 }
+const deleteProjet = async (req, res) => {
+    try {
+        const projet = await Projet.findByIdAndDelete(req.params.id)
+        console.log("azazaz", projet);
+        if (!projet) {
+            return res.status(404).json('Projet non trouvé')
+        }
+        return res.status(200).json({ message: 'Projet supprimé avec succès' });
+    } catch (error) {
+        console.log("eee", error);
+    }
+}
+const deleteAxe = async (req, res) => {
+    try {
+        const projet = await Projet.findById(req.params.projetId)
+        if (!projet) {
+            return res.status(404).json('Projet non trouvé')
+        }
+        if (!projet.axes || projet.axes.length === 0) {
+            return res.status(404).json('Aucun axe trouvé');
+        }
+        console.log("yy", projet.axes);
+        const axe = await projet.axes.id(req.params.axeId)
+        if (!axe) {
+            return res.status(404).json('Axe non trouvé')
+        }
+        axe.remove();
+        await projet.save();
+        return res.status(200).json({ message: 'Axe supprimé avec succès' });
+    } catch (error) {
+        console.log("eee", error);
+        return res.status(500).json({ message: 'Une erreur est survenue lors de la suppression de l\'axe' });
+    }
+}
 const updateTache = async (req, res) => {
     try {
         const projet = await Projet.findOneAndUpdate({ _id: req.params.idProjet }, { $set: req.body }, { new: true });
@@ -256,7 +312,50 @@ const updateTache = async (req, res) => {
         console.error(err.message);
         res.status(500).send("Server Error");
     }
+}
+const updateAxe = async (req, res) => {
+    try {
+        const projet = await Projet.findOneAndUpdate(
+            { _id: req.params.idProjet, "axes._id": req.params.idAxe },
+            { $set: { "axes.$.name": req.body.name } },
+            { new: true }
+        );
+        if (!projet) {
+            return res.status(404).json({ message: 'Projet ou Axe non trouvé' });
+        }
+        res.json(projet);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
 };
+
+const deleteTache = async (req, res) => {
+    try {
+        const projet = await Projet.findById(req.params.projetId)
+        if (!projet) {
+            return res.status(404).json('Projet non trouvé')
+        }
+        if (!projet.axes || projet.axes.length === 0) {
+            return res.status(404).json('Aucun axe trouvé');
+        }
+        console.log("yy", projet.axes);
+        const axe = await projet.axes.id(req.params.axeId)
+        if (!axe) {
+            return res.status(404).json('Axe non trouvé')
+        }
+        const tache = await axe.tache.id(req.params.tacheId)
+        if (!tache) {
+            return res.status(404).json('Tache non trouvé')
+        }
+        tache.remove();
+        await projet.save();
+        return res.status(200).json({ message: 'Tache supprimé avec succès' });
+    } catch (error) {
+        console.log("eee", error);
+        return res.status(500).json({ message: 'Une erreur est survenue lors de la suppression de l\'tache' });
+    }
+}
 
 const imagePofile = async (req, res) => {
     try {
@@ -473,8 +572,8 @@ const searchProjet = async (searchTerm) => {
 };
 const getMyDoc = async (req, res) => {
     try {
-        const parent = req.params.parentId ==0?null:req.params.parentId
-        const docs = await Document.find({user:req.user.id,parent:parent });
+        const parent = req.params.parentId == 0 ? null : req.params.parentId
+        const docs = await Document.find({ user: req.user.id, parent: parent });
         if (docs) {
             return res.json({
                 status: true,
@@ -494,15 +593,15 @@ const getMyDoc = async (req, res) => {
 const newDoc = async (req, res) => {
     try {
         req.body.user = req.user.id
-        req.body.parent=req.params.parentId==0?null   :req.params.parentId
+        req.body.parent = req.params.parentId == 0 ? null : req.params.parentId
         const docs = new Document(req.body);
         let result = await docs.save()
-            return res.json({
-                status: true,
-                data: result
-            })
-    
-        
+        return res.json({
+            status: true,
+            data: result
+        })
+
+
     } catch (error) {
         console.log("update profile", error)
     }
@@ -510,16 +609,12 @@ const newDoc = async (req, res) => {
 const newFile = async (req, res) => {
     try {
         console.log(req.file)
-       
-      if(req.file){
-        let arr = req.file.originalname.split('.');
-        req.body.type= arr[arr.length-1].toUpperCase();
-        req.body.size=req.file.size;
-        req.body.path=req.file.filename;
-       return res.send(req.body)
-      }
-    
-        
+        req.body.type = "PDF";
+        req.body.size = req.file.size;
+        req.body.path = req.file.filename;
+        return res.send(req.body)
+
+
     } catch (error) {
         console.log("update profile", error)
     }
@@ -528,6 +623,7 @@ module.exports = {
     saveCv,
     imagePofile,
     registerUser,
+    modifierPasswordApresConnexion,
     getUser,
     loginUser,
     sendForgetPasswordEmail,
@@ -540,12 +636,16 @@ module.exports = {
     calculateUserStatistics,
     getIdProjet,
     updateProjet,
+    deleteProjet,
+    deleteAxe,
     ajouterAxe,
+    deleteTache,
     searchProjet,
     ajouterTache,
+    updateAxe,
     getAxes,
     updateTache,
     calculateTaskPercentages,
-    getMyDoc, newDoc ,newFile
+    getMyDoc, newDoc, newFile
 
 }
