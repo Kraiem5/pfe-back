@@ -4,6 +4,7 @@ const User = require('../models/user.model');
 const { Role } = require('../models/role.model');
 const { validationResult } = require('express-validator');
 const { sendEmailToUser } = require('../utils/sendMailPasswordUser');
+const { registerValidation } = require('../controllers/userValidation/register.Validation');
 
 
 router.post('/new', async (req, res) => {
@@ -50,7 +51,7 @@ router.delete('/role/delete/:id', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la suppression du rôle' });
     }
 });
-router.post('/sign-up', async (req, res) => {
+router.post('/sign-up', registerValidation, async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
         return res

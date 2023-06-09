@@ -39,7 +39,6 @@ const registerUser = async (req, res) => {
             })
             // save new user
             await newUser.save()
-            console.log(email);
             //  Envoyer l'e-mail à l'utilisateur
             await sendEmailToUser(email, password)
             //console.log(mailUser.sendEmailToUser(email, password));
@@ -273,7 +272,6 @@ const updateProjet = async (req, res) => {
 const deleteProjet = async (req, res) => {
     try {
         const projet = await Projet.findByIdAndDelete(req.params.id)
-        console.log("azazaz", projet);
         if (!projet) {
             return res.status(404).json('Projet non trouvé')
         }
@@ -291,7 +289,6 @@ const deleteAxe = async (req, res) => {
         if (!projet.axes || projet.axes.length === 0) {
             return res.status(404).json('Aucun axe trouvé');
         }
-        console.log("yy", projet.axes);
         const axe = await projet.axes.id(req.params.axeId)
         if (!axe) {
             return res.status(404).json('Axe non trouvé')
@@ -339,7 +336,6 @@ const deleteTache = async (req, res) => {
         if (!projet.axes || projet.axes.length === 0) {
             return res.status(404).json('Aucun axe trouvé');
         }
-        console.log("yy", projet.axes);
         const axe = await projet.axes.id(req.params.axeId)
         if (!axe) {
             return res.status(404).json('Axe non trouvé')
@@ -518,7 +514,6 @@ const calculateTaskPercentages = async (req, res) => {
             const meanPourcentageAxes = axes.length > 0 ? totalPourcentage / axes.length : 0;
             project.mean_pourcentage_axes = meanPourcentageAxes;
             // Save the updated project
-            console.log("pro", project.mean_pourcentage_axes);
             await project.save();
         }
 
@@ -600,10 +595,8 @@ const newDoc = async (req, res) => {
             status: true,
             data: result
         })
-
-
     } catch (error) {
-        console.log("update profile", error)
+        console.log("document ", error)
     }
 }
 const newFile = async (req, res) => {

@@ -9,15 +9,12 @@ module.exports = async (req, res, next) => {
     const token = req.header('x-auth-token')
     //console.log(token, req.header)
     // ---check whether token exists---
-    console.log(token)
     if (!token) {
       return res
         .status(401)
         .json({ msg: 'Token not found or invalid! Access  denied' })
     }
     const decryptedToken = await jwt.verify(token, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })
-
-    //console.log("decryptedToken", decryptedToken);
     req.user = decryptedToken.user
     next()
   } catch (er) {
